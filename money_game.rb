@@ -57,16 +57,16 @@ class Player
         true_y = @y + 50
         bombs.reject! do |bomb| 
             if Gosu.distance(true_x, true_y, bomb.x + 30, bomb.y + 10) < 65 
-                @game_over = true
                 true
+                @game_over = true
             elsif bomb.y > 700
                 true
             else
                 false
             end
         end
+        return @game_over
     end
-
 end
 
 class Bomb
@@ -109,6 +109,7 @@ class Money_Grab < Gosu::Window
     def initialize
         super 1000, 800
         self.caption = "Money Grab"
+        @explotion_image = Gosu::Image.new("media/expodion.png")
         @game_over = false
         @background_image = Gosu::Image.new("media/background.png")
         @end_screen = Gosu::Image.new("media/end_screen.png")
@@ -118,6 +119,13 @@ class Money_Grab < Gosu::Window
         @moneys = Array.new
         @bombs = Array.new
     end
+
+    def game_end(score)
+        # @player = @explotion_image(500, 450, ZOrder::PLAYER)
+        @background_image = @end_screen
+        puts "game should end"
+    end
+
     def update
         if Gosu.button_down? Gosu::KB_LEFT or Gosu::button_down? Gosu::GP_LEFT
             @player.move_left
@@ -131,8 +139,10 @@ class Money_Grab < Gosu::Window
         if rand(10) < 2 and @bombs.size < 2
             @bombs.push(Bomb.new)
         end
+    
         @player.collect_moneys(@moneys)
-        @player.collect_bombs(@bombs)
+        @game_over = @player.collect_bombs(@bombs)
+
         if @game_over == true
             game_end(@score)
         end
@@ -141,17 +151,23 @@ class Money_Grab < Gosu::Window
 
 
 
-    def game_end(score)
-        @background_image = @end_screen
-    end
     def draw
-        @background_image.draw(0,0,0)
-        @player.draw
-        @moneys.each { |money| money.draw}
-        @bombs.each { |bomb| bomb.draw}
-        @font.draw_text("Player 1 Score: #{@player.score}", 10, 10, ZOrder::UI, 1.5, 1.5, Gosu::Color::YELLOW)
+            @background_image.draw(0,0,0)
+            @player.draw
+            @moneys.each { |money| money.draw}
+            @bombs.each { |bomb| bomb.draw}
+            @font.draw_text("Player 1 Score: #{@player.score}", 10, 10, ZOrder::UI, 1.5, 1.5, Gosu::Color::YELLOW)
+            
     end
 
+    def button_down(id)
+        if id == Gosu::KB_R
+            initialize
+        else
+            super
+        end
+    end
+    
     def button_down(id)
         if id == Gosu::KB_ESCAPE
             close
@@ -159,7 +175,7 @@ class Money_Grab < Gosu::Window
             super
         end
     end
-
 end
+
 
 Money_Grab.new.show
